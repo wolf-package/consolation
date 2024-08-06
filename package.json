@@ -5,8 +5,13 @@
   },
   "description": "In-game debug console for Unity.",
   "displayName": "Consolation",
-  "keywords": ["console", "debug", "log", "logging"],
+  "keywords": [
+    "console",
+    "debug",
+    "log",
+    "logging"
+  ],
   "name": "com.matthewminer.consolation",
   "unity": "2017.1",
-  "version": "1.4.1"
+  "version": "1.4.2"
 }

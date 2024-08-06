@@ -6,27 +6,23 @@ using UnityEngine;
     using UnityEngine.InputSystem;
 #endif
 
-#if UNITY_EDITOR
-    using UnityEditor;
-#endif
-
 namespace Consolation
 {
     /// <summary>
     /// A console to display Unity's debug logs in-game.
     ///
-    /// Version: 1.4.1
+    /// Version: 1.4.2
     /// </summary>
-    public class Console : MonoBehaviour
+    public class ConsoleInGame : MonoBehaviour
     {
         #region Inspector Settings
 
         [Tooltip("Hotkey to show and hide the console.")]
-        #if ENABLE_INPUT_SYSTEM
+#if ENABLE_INPUT_SYSTEM
             public Key toggleKey = Key.Backquote;
-        #else
-            public KeyCode toggleKey = KeyCode.BackQuote;
-        #endif
+#else
+        public KeyCode toggleKey = KeyCode.BackQuote;
+#endif
 
         [Tooltip("Whether to open as soon as the game starts.")]
         public bool openOnStart;
@@ -40,7 +36,8 @@ namespace Consolation
         [Tooltip("Acceleration (squared) above which to open the console.")]
         public float shakeAcceleration = 3f;
 
-        [Tooltip("Number of seconds that need to pass between visibility toggles. This threshold prevents closing again while shaking to open.")]
+        [Tooltip(
+            "Number of seconds that need to pass between visibility toggles. This threshold prevents closing again while shaking to open.")]
         public float toggleThresholdSeconds = .5f;
 
         [Tooltip("Whether to keep a limited number of logs. Useful if memory usage is a concern.")]
@@ -55,8 +52,10 @@ namespace Consolation
         [Tooltip("Font size to display log entries with.")]
         public int logFontSize = 12;
 
-        [Tooltip("Amount to scale UI by.")]
-        public float scaleFactor = 1f;
+        [Tooltip("Amount to scale UI by.")] public float scaleFactor = 1f;
+        public bool isCustomSizeWindowConsole = true;
+        [Range(600, 1080)] public float customWidth = 600;
+        [Range(500, 1920)] public float customHeight = 500;
 
         [Tooltip("Custom styles to apply to window.")]
         public GUISkin skin;
@@ -67,6 +66,13 @@ namespace Consolation
         static readonly GUIContent onlyLastLogLabel = new GUIContent("Only Last Log", "Show only most recent log.");
         static readonly GUIContent collapseLabel = new GUIContent("Collapse", "Hide repeated messages.");
         static GUIStyle dividerStyle;
+        private static event Action OnToggleShowChangedEvent;
+        private static event Action<float> OnCustomWidthChangedEvent;
+        private static event Action<float> OnCustomHeightChangedEvent;
+        private static event Action<bool> OnCustomSizeWindowChangedEvent;
+        private static event Action<int> OnLogFontSizeChangedEvent;
+        private static event Action<float> OnScaleFactorChangedEvent;
+        private static event Func<bool> OnGetCustomSizeWindowEvent;
         const int margin = 20;
         const string windowTitle = "Console";
 
@@ -91,6 +97,23 @@ namespace Consolation
         readonly Rect titleBarRect = new Rect(0, 0, 10000, 20);
         Rect windowRect = new Rect(margin, margin, 0, 0);
 
+        #region Api
+
+        public static void ToggleShow() => OnToggleShowChangedEvent?.Invoke();
+        public static void SetLogFontSize(int fontSize) => OnLogFontSizeChangedEvent?.Invoke(fontSize);
+        public static void SetScaleFactor(float scaleFactor) => OnScaleFactorChangedEvent?.Invoke(scaleFactor);
+        public static void SetCustomWidth(float width) => OnCustomWidthChangedEvent?.Invoke(width);
+        public static void SetCustomHeight(float height) => OnCustomHeightChangedEvent?.Invoke(height);
+
+        public static bool EnableCustomSizeWindow
+        {
+            get => (bool)OnGetCustomSizeWindowEvent?.Invoke();
+            set => OnCustomSizeWindowChangedEvent?.Invoke(value);
+        }
+
+        #endregion
+
+
         readonly Dictionary<LogType, bool> logTypeFilters = new Dictionary<LogType, bool>
         {
             { LogType.Assert, true },
@@ -102,14 +125,28 @@ namespace Consolation
 
         #region MonoBehaviour Messages
 
-        void OnDisable()
-        {
-            Application.logMessageReceivedThreaded -= HandleLogThreaded;
-        }
-
         void OnEnable()
         {
             Application.logMessageReceivedThreaded += HandleLogThreaded;
+            OnToggleShowChangedEvent += ToggleChangeShowChangedEvent;
+            OnLogFontSizeChangedEvent += OnChangeFontSize;
+            OnScaleFactorChangedEvent += OnChangeScaleFactor;
+            OnCustomWidthChangedEvent += OnCustomWidth;
+            OnCustomHeightChangedEvent += OnCustomHeight;
+            OnCustomSizeWindowChangedEvent += OnCustomSizeWindowChange;
+            OnGetCustomSizeWindowEvent += OnGetCustomSizeWindow;
+        }
+
+        void OnDisable()
+        {
+            Application.logMessageReceivedThreaded -= HandleLogThreaded;
+            OnToggleShowChangedEvent -= ToggleChangeShowChangedEvent;
+            OnLogFontSizeChangedEvent -= OnChangeFontSize;
+            OnScaleFactorChangedEvent -= OnChangeScaleFactor;
+            OnCustomWidthChangedEvent -= OnCustomWidth;
+            OnCustomHeightChangedEvent -= OnCustomHeight;
+            OnCustomSizeWindowChangedEvent -= OnCustomSizeWindowChange;
+            OnGetCustomSizeWindowEvent -= OnGetCustomSizeWindow;
         }
 
         void OnGUI()
@@ -127,11 +164,14 @@ namespace Consolation
             }
 
             GUI.matrix = Matrix4x4.Scale(Vector3.one * scaleFactor);
-
-            windowRect.width = (Screen.width / scaleFactor) - (margin * 2);
-            windowRect.height = (Screen.height / scaleFactor) - (margin * 2);
+            windowRect.width = isCustomSizeWindowConsole
+                ? customWidth
+                : Screen.width / scaleFactor - margin * 2;
+            windowRect.height = isCustomSizeWindowConsole
+                ? customHeight
+                : Screen.height / scaleFactor - margin * 2;
             windowRect = GUILayout.Window(123456, windowRect, DrawWindow, windowTitle);
-
+            //Debug.Log(windowRect.width + "/" + windowRect.height);
             GUI.skin = previousGUISkin;
         }
 
@@ -161,13 +201,48 @@ namespace Consolation
             };
         }
 
+        private void ToggleChangeShowChangedEvent()
+        {
+            isVisible = !isVisible;
+        }
+
+        private void OnChangeFontSize(int fontSize)
+        {
+            logFontSize = fontSize;
+        }
+
+        private void OnChangeScaleFactor(float scale)
+        {
+            scaleFactor = scale;
+        }
+
+        private void OnCustomSizeWindowChange(bool isCustom)
+        {
+            isCustomSizeWindowConsole = isCustom;
+        }
+
+        private bool OnGetCustomSizeWindow()
+        {
+            return isCustomSizeWindowConsole;
+        }
+
+        private void OnCustomWidth(float width)
+        {
+            customWidth = width;
+        }
+
+        private void OnCustomHeight(float height)
+        {
+            customHeight = height;
+        }
+
         void Update()
         {
             UpdateQueuedLogs();
 
             if (WasToggleKeyPressed())
             {
-                isVisible = !isVisible;
+                ToggleChangeShowChangedEvent();
             }
 
             if (shakeToOpen &&
@@ -284,7 +359,8 @@ namespace Consolation
             // We seem to need to set a fixed height to work around this.
             var scrollViewHeight = windowRect.height / 2;
 
-            stackTraceScrollPosition = GUILayout.BeginScrollView(stackTraceScrollPosition, GUILayout.Height(scrollViewHeight));
+            stackTraceScrollPosition =
+                GUILayout.BeginScrollView(stackTraceScrollPosition, GUILayout.Height(scrollViewHeight));
             {
                 var selectedLog = logs[selectedLogIndex.Value];
                 GUILayout.Label(selectedLog.Message);
@@ -317,7 +393,8 @@ namespace Consolation
                 }
 
                 isCollapsed = GUILayout.Toggle(isCollapsed, collapseLabel, GUILayout.ExpandWidth(false));
-                isOnlyLastLogVisible = GUILayout.Toggle(isOnlyLastLogVisible, onlyLastLogLabel, GUILayout.ExpandWidth(false));
+                isOnlyLastLogVisible =
+                    GUILayout.Toggle(isOnlyLastLogVisible, onlyLastLogLabel, GUILayout.ExpandWidth(false));
             }
             GUILayout.EndHorizontal();
         }
@@ -425,42 +502,42 @@ namespace Consolation
 
         bool WasMultiTouchThresholdExceeded()
         {
-            #if ENABLE_INPUT_SYSTEM
+#if ENABLE_INPUT_SYSTEM
                 var touchCount = UnityEngine.InputSystem.EnhancedTouch.Touch.activeTouches.Count;
-            #else
-                var touchCount = Input.touchCount;
-            #endif
+#else
+            var touchCount = Input.touchCount;
+#endif
 
             return touchCount > 2;
         }
 
         bool WasShaken()
         {
-            #if ENABLE_INPUT_SYSTEM
+#if ENABLE_INPUT_SYSTEM
                 var acceleration = Accelerometer.current?.acceleration.ReadValue() ?? Vector3.zero;
-            #else
-                var acceleration = Input.acceleration;
-            #endif
+#else
+            var acceleration = Input.acceleration;
+#endif
 
             return acceleration.sqrMagnitude > shakeAcceleration;
         }
 
         bool WasToggleKeyPressed()
         {
-            #if ENABLE_INPUT_SYSTEM
+#if ENABLE_INPUT_SYSTEM
                 return Keyboard.current[toggleKey].wasPressedThisFrame;
-            #else
-                return Input.GetKeyDown(toggleKey);
-            #endif
+#else
+            return Input.GetKeyDown(toggleKey);
+#endif
         }
 
         static void EnableMultiTouch()
         {
-            #if ENABLE_INPUT_SYSTEM
+#if ENABLE_INPUT_SYSTEM
                 UnityEngine.InputSystem.EnhancedTouch.EnhancedTouchSupport.Enable();
-            #else
-                Input.multiTouchEnabled = true;
-            #endif
+#else
+            Input.multiTouchEnabled = true;
+#endif
         }
     }
 
@@ -551,75 +628,4 @@ namespace Consolation
             }
         }
     }
-
-#if UNITY_EDITOR
-
-    [CustomEditor(typeof(Console))]
-    class ConsoleEditor : Editor
-    {
-        SerializedProperty toggleKey;
-        SerializedProperty openOnStart;
-        SerializedProperty shakeToOpen;
-        SerializedProperty shakeRequiresTouch;
-        SerializedProperty shakeAcceleration;
-        SerializedProperty toggleThresholdSeconds;
-        SerializedProperty restrictLogCount;
-        SerializedProperty maxLogCount;
-        SerializedProperty collapseLogOnStart;
-        SerializedProperty logFontSize;
-        SerializedProperty scaleFactor;
-        SerializedProperty skin;
-
-        void OnEnable()
-        {
-            toggleKey = serializedObject.FindProperty("toggleKey");
-            openOnStart = serializedObject.FindProperty("openOnStart");
-            shakeToOpen = serializedObject.FindProperty("shakeToOpen");
-            shakeRequiresTouch = serializedObject.FindProperty("shakeRequiresTouch");
-            shakeAcceleration = serializedObject.FindProperty("shakeAcceleration");
-            toggleThresholdSeconds = serializedObject.FindProperty("toggleThresholdSeconds");
-            restrictLogCount = serializedObject.FindProperty("restrictLogCount");
-            maxLogCount = serializedObject.FindProperty("maxLogCount");
-            collapseLogOnStart = serializedObject.FindProperty("collapseLogOnStart");
-            logFontSize = serializedObject.FindProperty("logFontSize");
-            scaleFactor = serializedObject.FindProperty("scaleFactor");
-            skin = serializedObject.FindProperty("skin");
-        }
-
-        public override void OnInspectorGUI()
-        {
-            EditorGUILayout.PropertyField(toggleKey);
-            EditorGUILayout.PropertyField(openOnStart);
-            EditorGUILayout.PropertyField(shakeToOpen);
-
-            using (new EditorGUI.DisabledScope(!shakeToOpen.boolValue))
-            using (new EditorGUI.IndentLevelScope())
-            {
-                EditorGUILayout.PropertyField(shakeRequiresTouch);
-                EditorGUILayout.PropertyField(shakeAcceleration);
-            }
-
-            EditorGUILayout.PropertyField(toggleThresholdSeconds);
-            EditorGUILayout.PropertyField(restrictLogCount);
-
-            using (new EditorGUI.DisabledScope(!restrictLogCount.boolValue))
-            using (new EditorGUI.IndentLevelScope())
-            {
-                EditorGUILayout.PropertyField(maxLogCount);
-            }
-
-            EditorGUILayout.PropertyField(collapseLogOnStart);
-
-            EditorGUILayout.Space();
-            GUILayout.Label("Style", EditorStyles.boldLabel);
-
-            EditorGUILayout.PropertyField(logFontSize);
-            EditorGUILayout.PropertyField(scaleFactor);
-            EditorGUILayout.PropertyField(skin);
-
-            serializedObject.ApplyModifiedProperties();
-        }
-    }
-
-#endif
 }
