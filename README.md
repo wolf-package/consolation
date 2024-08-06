@@ -42,7 +42,7 @@ configurable in the inspector.
 ```csharp
     ConsoleInGame.IsCustomSizeWindowConsole = true;
     // Or
-    ConsoleInGame.IsCustomSizeWindowConsole = true;
+    ConsoleInGame.IsCustomSizeWindowConsole = false;
 ```
 - Set custom width (only work when `EnableCustomSizeWindow = true`)
 ```csharp
