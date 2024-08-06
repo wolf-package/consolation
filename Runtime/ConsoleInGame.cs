@@ -2,9 +2,6 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-#if ENABLE_INPUT_SYSTEM
-    using UnityEngine.InputSystem;
-#endif
 
 namespace Consolation
 {
@@ -17,13 +14,9 @@ namespace Consolation
     {
         #region Inspector Settings
 
-        [Tooltip("Hotkey to show and hide the console.")]
-#if ENABLE_INPUT_SYSTEM
-             [SerializeField] private  Key toggleKey = Key.Backquote;
-#else
-        [SerializeField]
+        [Tooltip("Hotkey to show and hide the console.")] [SerializeField]
         private KeyCode toggleKey = KeyCode.BackQuote;
-#endif
+
 
         [Tooltip("Whether to open as soon as the game starts.")] [SerializeField]
         private bool openOnStart;
@@ -532,42 +525,24 @@ namespace Consolation
 
         bool WasMultiTouchThresholdExceeded()
         {
-#if ENABLE_INPUT_SYSTEM
-                var touchCount = UnityEngine.InputSystem.EnhancedTouch.Touch.activeTouches.Count;
-#else
             var touchCount = Input.touchCount;
-#endif
-
             return touchCount > 2;
         }
 
         bool WasShaken()
         {
-#if ENABLE_INPUT_SYSTEM
-                var acceleration = Accelerometer.current?.acceleration.ReadValue() ?? Vector3.zero;
-#else
             var acceleration = Input.acceleration;
-#endif
-
             return acceleration.sqrMagnitude > shakeAcceleration;
         }
 
         bool WasToggleKeyPressed()
         {
-#if ENABLE_INPUT_SYSTEM
-                return Keyboard.current[toggleKey].wasPressedThisFrame;
-#else
             return Input.GetKeyDown(toggleKey);
-#endif
         }
 
         static void EnableMultiTouch()
         {
-#if ENABLE_INPUT_SYSTEM
-                UnityEngine.InputSystem.EnhancedTouch.EnhancedTouchSupport.Enable();
-#else
             Input.multiTouchEnabled = true;
-#endif
         }
     }
 
