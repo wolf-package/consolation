@@ -19,43 +19,47 @@ namespace Consolation
 
         [Tooltip("Hotkey to show and hide the console.")]
 #if ENABLE_INPUT_SYSTEM
-            public Key toggleKey = Key.Backquote;
+             [SerializeField] private  Key toggleKey = Key.Backquote;
 #else
-        public KeyCode toggleKey = KeyCode.BackQuote;
+        [SerializeField]
+        private KeyCode toggleKey = KeyCode.BackQuote;
 #endif
 
-        [Tooltip("Whether to open as soon as the game starts.")]
-        public bool openOnStart;
+        [Tooltip("Whether to open as soon as the game starts.")] [SerializeField]
+        private bool openOnStart;
 
-        [Tooltip("Whether to open the window by shaking the device (mobile-only).")]
-        public bool shakeToOpen = true;
+        [Tooltip("Whether to open the window by shaking the device (mobile-only).")] [SerializeField]
+        private bool shakeToOpen = true;
 
-        [Tooltip("Whether to require touches while shaking to avoid accidental shakes.")]
-        public bool shakeRequiresTouch;
+        [Tooltip("Whether to require touches while shaking to avoid accidental shakes.")] [SerializeField]
+        private bool shakeRequiresTouch;
 
-        [Tooltip("Acceleration (squared) above which to open the console.")]
-        public float shakeAcceleration = 3f;
+        [Tooltip("Acceleration (squared) above which to open the console.")] [SerializeField]
+        private float shakeAcceleration = 3f;
 
         [Tooltip(
             "Number of seconds that need to pass between visibility toggles. This threshold prevents closing again while shaking to open.")]
-        public float toggleThresholdSeconds = .5f;
+        [SerializeField]
+        private float toggleThresholdSeconds = .5f;
 
-        [Tooltip("Whether to keep a limited number of logs. Useful if memory usage is a concern.")]
-        public bool restrictLogCount;
+        [Tooltip("Whether to keep a limited number of logs. Useful if memory usage is a concern.")] [SerializeField]
+        private bool restrictLogCount;
 
-        [Tooltip("Number of logs to keep before removing old ones.")]
-        public int maxLogCount = 1000;
+        [Tooltip("Number of logs to keep before removing old ones.")] [SerializeField]
+        private int maxLogCount = 1000;
 
-        [Tooltip("Whether log messages are collapsed by default or not.")]
-        public bool collapseLogOnStart;
+        [Tooltip("Whether log messages are collapsed by default or not.")] [SerializeField]
+        private bool collapseLogOnStart;
 
-        [Tooltip("Font size to display log entries with.")]
-        public int logFontSize = 12;
+        [Tooltip("Font size to display log entries with.")] [SerializeField]
+        private int logFontSize = 12;
 
-        [Tooltip("Amount to scale UI by.")] public float scaleFactor = 1f;
-        public bool isCustomSizeWindowConsole = true;
-        [Range(600, 1080)] public float customWidth = 600;
-        [Range(500, 1920)] public float customHeight = 500;
+        [Tooltip("Amount to scale UI by.")] [SerializeField]
+        private float scaleFactor = 1f;
+
+        [SerializeField] private bool isCustomSizeWindowConsole = true;
+        [Range(600, 1080)] [SerializeField] private float customWidth = 600;
+        [Range(500, 1920)] [SerializeField] private float customHeight = 500;
 
         [Tooltip("Custom styles to apply to window.")]
         public GUISkin skin;
@@ -73,6 +77,7 @@ namespace Consolation
         private static event Action<int> OnLogFontSizeChangedEvent;
         private static event Action<float> OnScaleFactorChangedEvent;
         private static event Func<bool> OnGetCustomSizeWindowEvent;
+        private static ConsoleInGame ins;
         const int margin = 20;
         const string windowTitle = "Console";
 
@@ -97,22 +102,6 @@ namespace Consolation
         readonly Rect titleBarRect = new Rect(0, 0, 10000, 20);
         Rect windowRect = new Rect(margin, margin, 0, 0);
 
-        #region Api
-
-        public static void ToggleShow() => OnToggleShowChangedEvent?.Invoke();
-        public static void SetLogFontSize(int fontSize) => OnLogFontSizeChangedEvent?.Invoke(fontSize);
-        public static void SetScaleFactor(float scaleFactor) => OnScaleFactorChangedEvent?.Invoke(scaleFactor);
-        public static void SetCustomWidth(float width) => OnCustomWidthChangedEvent?.Invoke(width);
-        public static void SetCustomHeight(float height) => OnCustomHeightChangedEvent?.Invoke(height);
-
-        public static bool EnableCustomSizeWindow
-        {
-            get => (bool)OnGetCustomSizeWindowEvent?.Invoke();
-            set => OnCustomSizeWindowChangedEvent?.Invoke(value);
-        }
-
-        #endregion
-
 
         readonly Dictionary<LogType, bool> logTypeFilters = new Dictionary<LogType, bool>
         {
@@ -123,30 +112,106 @@ namespace Consolation
             { LogType.Warning, true },
         };
 
+        #region API
+
+        public static bool ShakeToOpen
+        {
+            get => ins.shakeToOpen;
+            set => ins.shakeToOpen = value;
+        }
+
+        public static bool ShakeRequiresTouch
+        {
+            get => ins.shakeRequiresTouch;
+            set => ins.shakeRequiresTouch = value;
+        }
+
+        public static float ShakeAcceleration
+        {
+            get => ins.shakeAcceleration;
+            set => ins.shakeAcceleration = value;
+        }
+
+        public static float ToggleThresholdSeconds
+        {
+            get => ins.toggleThresholdSeconds;
+            set => ins.toggleThresholdSeconds = value;
+        }
+
+        public static bool RestrictLogCount
+        {
+            get => ins.restrictLogCount;
+            set => ins.restrictLogCount = value;
+        }
+
+        public static int MaxLogCount
+        {
+            get => ins.maxLogCount;
+            set => ins.maxLogCount = value;
+        }
+
+        public static bool CollapseLogOnStart
+        {
+            get => ins.collapseLogOnStart;
+            set => ins.collapseLogOnStart = value;
+        }
+
+        public static int LogFontSize
+        {
+            get => ins.logFontSize;
+            set => ins.logFontSize = value;
+        }
+
+        public static float ScaleFactor
+        {
+            get => ins.scaleFactor;
+            set => ins.scaleFactor = value;
+        }
+
+        public static bool IsCustomSizeWindowConsole
+        {
+            get => ins.isCustomSizeWindowConsole;
+            set => ins.isCustomSizeWindowConsole = value;
+        }
+
+        public static float CustomWidth
+        {
+            get => ins.customWidth;
+            set => ins.customWidth = value;
+        }
+
+        public static float CustomHeight
+        {
+            get => ins.customHeight;
+            set => ins.customHeight = value;
+        }
+
+        public static void Activate(bool isShow)
+        {
+            ins.isVisible = isShow;
+        }
+
+        #endregion
+
+
         #region MonoBehaviour Messages
+
+        private void Awake()
+        {
+            if (ins == null)
+            {
+                ins = this;
+            }
+        }
 
         void OnEnable()
         {
             Application.logMessageReceivedThreaded += HandleLogThreaded;
-            OnToggleShowChangedEvent += ToggleChangeShowChangedEvent;
-            OnLogFontSizeChangedEvent += OnChangeFontSize;
-            OnScaleFactorChangedEvent += OnChangeScaleFactor;
-            OnCustomWidthChangedEvent += OnCustomWidth;
-            OnCustomHeightChangedEvent += OnCustomHeight;
-            OnCustomSizeWindowChangedEvent += OnCustomSizeWindowChange;
-            OnGetCustomSizeWindowEvent += OnGetCustomSizeWindow;
         }
 
         void OnDisable()
         {
             Application.logMessageReceivedThreaded -= HandleLogThreaded;
-            OnToggleShowChangedEvent -= ToggleChangeShowChangedEvent;
-            OnLogFontSizeChangedEvent -= OnChangeFontSize;
-            OnScaleFactorChangedEvent -= OnChangeScaleFactor;
-            OnCustomWidthChangedEvent -= OnCustomWidth;
-            OnCustomHeightChangedEvent -= OnCustomHeight;
-            OnCustomSizeWindowChangedEvent -= OnCustomSizeWindowChange;
-            OnGetCustomSizeWindowEvent -= OnGetCustomSizeWindow;
         }
 
         void OnGUI()
@@ -201,48 +266,13 @@ namespace Consolation
             };
         }
 
-        private void ToggleChangeShowChangedEvent()
-        {
-            isVisible = !isVisible;
-        }
-
-        private void OnChangeFontSize(int fontSize)
-        {
-            logFontSize = fontSize;
-        }
-
-        private void OnChangeScaleFactor(float scale)
-        {
-            scaleFactor = scale;
-        }
-
-        private void OnCustomSizeWindowChange(bool isCustom)
-        {
-            isCustomSizeWindowConsole = isCustom;
-        }
-
-        private bool OnGetCustomSizeWindow()
-        {
-            return isCustomSizeWindowConsole;
-        }
-
-        private void OnCustomWidth(float width)
-        {
-            customWidth = width;
-        }
-
-        private void OnCustomHeight(float height)
-        {
-            customHeight = height;
-        }
-
         void Update()
         {
             UpdateQueuedLogs();
 
             if (WasToggleKeyPressed())
             {
-                ToggleChangeShowChangedEvent();
+                isVisible = !isVisible;
             }
 
             if (shakeToOpen &&

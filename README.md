@@ -36,29 +36,29 @@ configurable in the inspector.
 ### Api
 - Toggle on/off console window
 ```csharp
-    ConsoleInGame.ToggleShow();
+     ConsoleInGame.Activate(true);
 ```
 - Enable custom size window
 ```csharp
-    ConsoleInGame.EnableCustomSizeWindow = true;
+    ConsoleInGame.IsCustomSizeWindowConsole = true;
     // Or
-    ConsoleInGame.EnableCustomSizeWindow = false;
+    ConsoleInGame.IsCustomSizeWindowConsole = true;
 ```
 - Set custom width (only work when `EnableCustomSizeWindow = true`)
 ```csharp
-    ConsoleInGame.SetCustomWidth(650);
+    ConsoleInGame.CustomWidth = 650;
 ```
 - Set custom height (only work when `EnableCustomSizeWindow = true`)
 ```csharp
-    ConsoleInGame.SetCustomHeight(700);
+   ConsoleInGame.CustomHeight = 700;
 ```
 - Set log font size
 ```csharp
-    ConsoleInGame.SetLogFontSize(20);
+    ConsoleInGame.LogFontSize = 20;
 ```
 - Set scale factor
 ```csharp
-    ConsoleInGame.SetScaleFactor(1.5f);
+    ConsoleInGame.ScaleFactor = 1.5f;
 ```
 ## Compatibility
 
