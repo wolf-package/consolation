@@ -9,19 +9,13 @@ This is especially useful on mobile devices.
 
 ## Installing
 
-### Copy Script
+### 1: Download the repo and drop it into folder `Assets`
+### 2: Add the line below to `Packages/manifest.json`
 
-The `Console` component is entirely self-contained in *Console.cs*, so
-installation is as simple as dragging this script into your project.
-
-### Unity Package Manager
-
-Alternatively, add the package to your project via
-[UPM](https://docs.unity3d.com/Manual/upm-ui.html) using the Git URL
-https://github.com/mminer/consolation.git. You can also clone the repository and
-point UPM to your local copy.
-
-![Adding package to UPM](https://matthewminer.com/images/consolation-upm.gif)
+for version `1.4.2`
+```csharp
+"com.matthewminer.consolation":"https://github.com/wolf-package/consolation#1.4.2",
+```
 
 
 ## Using
@@ -37,8 +31,8 @@ requiring 3 or more fingers on the screen.
 Several other settings like font size and the maximum log count are also
 configurable in the inspector.
 
-![Console component
-inspector](https://matthewminer.com/images/consolation-inspector.png)
+![Screenshot 2024-08-06 165840](https://github.com/user-attachments/assets/03907710-0a67-4ea1-b7a2-a415ec4b416d)
+
 
 
 ## Compatibility
