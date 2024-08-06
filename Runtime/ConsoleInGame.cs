@@ -63,13 +63,6 @@ namespace Consolation
         static readonly GUIContent onlyLastLogLabel = new GUIContent("Only Last Log", "Show only most recent log.");
         static readonly GUIContent collapseLabel = new GUIContent("Collapse", "Hide repeated messages.");
         static GUIStyle dividerStyle;
-        private static event Action OnToggleShowChangedEvent;
-        private static event Action<float> OnCustomWidthChangedEvent;
-        private static event Action<float> OnCustomHeightChangedEvent;
-        private static event Action<bool> OnCustomSizeWindowChangedEvent;
-        private static event Action<int> OnLogFontSizeChangedEvent;
-        private static event Action<float> OnScaleFactorChangedEvent;
-        private static event Func<bool> OnGetCustomSizeWindowEvent;
         private static ConsoleInGame ins;
         const int margin = 20;
         const string windowTitle = "Console";
