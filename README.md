@@ -20,7 +20,7 @@ for version `1.4.2`
 
 ## Using
 
-Attach the `Console` component to a game object. When playing your game, open
+Attach the `ConsoleInGame` component to a game object. When playing your game, open
 the console window with the back quote key <kbd>`</kbd>. This shortcut is
 configurable in the inspector.
 
@@ -33,8 +33,33 @@ configurable in the inspector.
 
 ![Screenshot 2024-08-06 165840](https://github.com/user-attachments/assets/03907710-0a67-4ea1-b7a2-a415ec4b416d)
 
-
-
+### Api
+- Toggle on/off console window
+```csharp
+    ConsoleInGame.ToggleShow();
+```
+- Enable custom size window
+```csharp
+    ConsoleInGame.EnableCustomSizeWindow = true;
+    // Or
+    ConsoleInGame.EnableCustomSizeWindow = false;
+```
+- Set custom width (only work when `EnableCustomSizeWindow = true`)
+```csharp
+    ConsoleInGame.SetCustomWidth(650);
+```
+- Set custom height (only work when `EnableCustomSizeWindow = true`)
+```csharp
+    ConsoleInGame.SetCustomHeight(700);
+```
+- Set log font size
+```csharp
+    ConsoleInGame.SetLogFontSize(20);
+```
+- Set scale factor
+```csharp
+    ConsoleInGame.SetScaleFactor(1.5f);
+```
 ## Compatibility
 
 Supports Unity 2017.x and above. It hasn't been tested on all the platforms that
