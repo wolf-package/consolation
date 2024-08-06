@@ -14,7 +14,7 @@ This is especially useful on mobile devices.
 
 for version `1.4.2`
 ```csharp
-"com.matthewminer.consolation":"https://github.com/wolf-package/consolation#1.4.2",
+"com.matthewminer.consolation":"https://github.com/wolf-package/consolation.git#1.4.2",
 ```
 
 
